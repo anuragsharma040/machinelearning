@@ -14,11 +14,17 @@ df = pd.read_csv(file_path)
 X = df.drop('Output', axis=1)
 y = df['Output']
 
-# Encode categorical columns (convert text to numerical values)
-df_encoded = pd.get_dummies(df[['SenderBic', 'ReceiverBic', 'Direction', 'MsgBody', 'Tag20']])
+# Label encode categorical columns
+label_encoder = LabelEncoder()
+df['SenderBic'] = label_encoder.fit_transform(df['SenderBic'])
+df['ReceiverBic'] = label_encoder.fit_transform(df['ReceiverBic'])
+df['Direction'] = label_encoder.fit_transform(df['Direction'])
+df['MsgBody'] = label_encoder.fit_transform(df['MsgBody'])
+df['Tag20'] = label_encoder.fit_transform(df['Tag20'])
+df['Output'] = label_encoder.fit_transform(df['Output'])
 
-# Combine encoded features with numerical features
-X = pd.concat([df[['MT']], df_encoded], axis=1)
+# Features
+X = df[['SenderBic', 'ReceiverBic', 'MT', 'Direction', 'MsgBody', 'Tag20']]
 
 # Target variable
 y = df['Output']
@@ -41,13 +47,13 @@ print(f"Accuracy: {accuracy}")
 
 # Example: Make a prediction for a new data point
 new_data_point = pd.DataFrame({
+    'SenderBic': [label_encoder.transform(['JANARDAN'])[0]],
+    'ReceiverBic': [label_encoder.transform(['JAYARAMAN'])[0]],
     'MT': [107],
-    'SenderBic_JANARDAN': [0],
-    'ReceiverBic_JAYARAMAN': [1],
-    'Direction_I': [1],
-    'MsgBody_SOMEONE AMERICAN': [1],
-    'Tag20_ABC': [1]
+    'Direction': [label_encoder.transform(['I'])[0]],
+    'MsgBody': [label_encoder.transform(['SOMEONE AMERICAN'])[0]],
+    'Tag20': [label_encoder.transform(['ABC'])[0]]
 })
 
 predicted_output = model.predict(new_data_point)
-print(f"Predicted Output: {predicted_output[0]}")
+print(f"Predicted Output: {label_encoder.inverse_transform(predicted_output)[0]}")
