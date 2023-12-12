@@ -14,14 +14,19 @@ df = pd.read_csv(file_path)
 X = df.drop('Output', axis=1)
 y = df['Output']
 
-# Convert categorical columns to numeric using Label Encoding
-label_encoder = LabelEncoder()
-X_encoded = X.apply(label_encoder.fit_transform)
+# Encode categorical columns (convert text to numerical values)
+df_encoded = pd.get_dummies(df[['SenderBic', 'ReceiverBic', 'Direction', 'MsgBody', 'Tag20']])
+
+# Combine encoded features with numerical features
+X = pd.concat([df[['MT']], df_encoded], axis=1)
+
+# Target variable
+y = df['Output']
 
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X_encoded, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Initialize a Random Forest Classifier
+# Create a RandomForestClassifier model
 model = RandomForestClassifier(random_state=42)
 
 # Train the model
@@ -32,15 +37,17 @@ predictions = model.predict(X_test)
 
 # Evaluate the model
 accuracy = accuracy_score(y_test, predictions)
-print(f'Accuracy: {accuracy}')
+print(f"Accuracy: {accuracy}")
 
-# Save the trained model for future use
-model_filename = 'trained_model.joblib'
-joblib.dump(model, model_filename)
-print(f'Trained model saved as {model_filename}')
+# Example: Make a prediction for a new data point
+new_data_point = pd.DataFrame({
+    'MT': [107],
+    'SenderBic_JANARDAN': [0],
+    'ReceiverBic_JAYARAMAN': [1],
+    'Direction_I': [1],
+    'MsgBody_SOMEONE AMERICAN': [1],
+    'Tag20_ABC': [1]
+})
 
-# Now, you can use the trained model to make predictions on new data
-# For example, if you have a new_data DataFrame with the same features as your training data
-# new_data_encoded = new_data.apply(label_encoder.transform)
-# new_predictions = model.predict(new_data_encoded)
-# print('Predictions for new data:', new_predictions)
+predicted_output = model.predict(new_data_point)
+print(f"Predicted Output: {predicted_output[0]}")
