@@ -14,7 +14,9 @@ df = pd.read_csv(file_path)
 X = df.drop('Output', axis=1)
 y = df['Output']
 
-# Label encode categorical columns
+df = pd.DataFrame(data)
+
+# Label encode categorical columns using the same encoder fitted on the entire dataset
 label_encoder = LabelEncoder()
 df['SenderBic'] = label_encoder.fit_transform(df['SenderBic'])
 df['ReceiverBic'] = label_encoder.fit_transform(df['ReceiverBic'])
@@ -38,21 +40,44 @@ model = RandomForestClassifier(random_state=42)
 # Train the model
 model.fit(X_train, y_train)
 
-# Make predictions on the test set
+print('1.............')
+print(X_train)
+print('2.............')
+print(X_test)
+
+
+print('3')
+print(y_train)
+print('4')
+print(y_test)
+
+# Use the same LabelEncoder fitted on the training set to transform the test set
+X_test['SenderBic'] = label_encoder.fit_transform(X_test['SenderBic'])
+X_test['ReceiverBic'] = label_encoder.fit_transform(X_test['ReceiverBic'])
+X_test['Direction'] = label_encoder.fit_transform(X_test['Direction'])
+X_test['MsgBody'] = label_encoder.fit_transform(X_test['MsgBody'])
+X_test['Tag20'] = label_encoder.fit_transform(X_test['Tag20'])
+
+
+
+# # Ensure consistent label encoding for the target variable
+# y_test = y_test.apply(lambda x: x if x in set(y_train) else 'UNKNOWN_LABEL')
+
+# # Make predictions on the test set
 predictions = model.predict(X_test)
 
-# Evaluate the model
+# # Evaluate the model
 accuracy = accuracy_score(y_test, predictions)
 print(f"Accuracy: {accuracy}")
 
-# Example: Make a prediction for a new data point
+# # Example: Make a prediction for a new data point
 new_data_point = pd.DataFrame({
-    'SenderBic': [label_encoder.transform(['JANARDAN'])[0]],
-    'ReceiverBic': [label_encoder.transform(['JAYARAMAN'])[0]],
-    'MT': [107],
-    'Direction': [label_encoder.transform(['I'])[0]],
-    'MsgBody': [label_encoder.transform(['SOMEONE AMERICAN'])[0]],
-    'Tag20': [label_encoder.transform(['ABC'])[0]]
+    'SenderBic': [label_encoder.fit_transform(['JANARDAN'])[0]],
+    'ReceiverBic': [label_encoder.fit_transform(['JAYARAMAN'])[0]],
+    'MT': [104],
+    'Direction': [label_encoder.fit_transform(['I'])[0]],
+    'MsgBody': [label_encoder.fit_transform(['SOMEONE AMERICAN'])[0]],
+    'Tag20': [label_encoder.fit_transform(['ABC'])[0]]
 })
 
 predicted_output = model.predict(new_data_point)
